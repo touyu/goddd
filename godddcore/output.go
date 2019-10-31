@@ -1,9 +1,10 @@
 package godddcore
 
 import (
-	"goddd/strmangle"
-	"os"
-	"text/template"
+"fmt"
+"goddd/strmangle"
+"os"
+"text/template"
 )
 
 var templateFunctions = template.FuncMap{
@@ -11,11 +12,24 @@ var templateFunctions = template.FuncMap{
 	"camelCase": strmangle.CamelCase,
 }
 
-func generateOutput(name string) error {
-	templateFile := "sample.go.tql"
-	templateFilePath := "templates/sample.go.tql"
+type templateSet struct {
+	FileName string
+	OutputDir string
+}
 
-	tql, err := template.New(templateFile).Funcs(templateFunctions).ParseFiles(templateFilePath)
+var templateSets = []*templateSet{
+	{
+		FileName: "sample.go.tql",
+		OutputDir: "application",
+	},
+}
+
+func generateOutput(name string) error {
+	templateSet := templateSets[0]
+	templateFileName := templateSet.FileName
+	templateFilePath := fmt.Sprintf("templates/%s", templateFileName)
+
+	tql, err := template.New(templateFileName).Funcs(templateFunctions).ParseFiles(templateFilePath)
 	if err != nil {
 		return err
 	}
@@ -24,5 +38,15 @@ func generateOutput(name string) error {
 		Name: name,
 	}
 
-	return tql.Execute(os.Stdout, data)
+	if err := os.Mkdir(templateSet.OutputDir, 0700); err != nil {
+		return err
+	}
+
+	outputFilePath := fmt.Sprintf("%s/%s.go", templateSet.OutputDir, name)
+	outputfile, err := os.Create(outputFilePath)
+	if err != nil {
+		return err
+	}
+
+	return tql.Execute(outputfile, data)
 }
