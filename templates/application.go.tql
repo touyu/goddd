@@ -1,0 +1,18 @@
+package application
+
+import (
+    "{{.CurrentDir}}/domain/service/{{.Name}}"
+    "database/sql"
+)
+
+type {{.Name | camelCase}}Service struct {
+    db  *sql.DB
+}
+
+func New{{.Name | titleCase}}Service(
+	db  *sql.DB,
+) {{.Name}}.Service {
+    return &{{.Name | camelCase}}Service {
+        db: db,
+    }
+}

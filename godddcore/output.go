@@ -1,10 +1,12 @@
 package godddcore
 
 import (
-"fmt"
-"goddd/strmangle"
-"os"
-"text/template"
+	"fmt"
+	"goddd/strmangle"
+	"log"
+	"os"
+	"strings"
+	"text/template"
 )
 
 var templateFunctions = template.FuncMap{
@@ -15,17 +17,32 @@ var templateFunctions = template.FuncMap{
 type templateSet struct {
 	FileName string
 	OutputDir string
+	OutputFileName string
 }
 
 var templateSets = []*templateSet{
 	{
-		FileName: "sample.go.tql",
+		FileName: "application.go.tql",
 		OutputDir: "application",
+	},
+	{
+		FileName: "service_interface.go.tql",
+		OutputDir: "domain/service/creator",
+		OutputFileName: "interface.go",
 	},
 }
 
 func generateOutput(name string) error {
-	templateSet := templateSets[0]
+	for _, set := range templateSets {
+		err := executeTemplate(set, name)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func executeTemplate(templateSet *templateSet, name string) error {
 	templateFileName := templateSet.FileName
 	templateFilePath := fmt.Sprintf("templates/%s", templateFileName)
 
@@ -34,19 +51,34 @@ func generateOutput(name string) error {
 		return err
 	}
 
-	data := templateData{
-		Name: name,
-	}
-
-	if err := os.Mkdir(templateSet.OutputDir, 0700); err != nil {
+	if err := os.MkdirAll(templateSet.OutputDir, 0700); err != nil {
 		return err
 	}
 
-	outputFilePath := fmt.Sprintf("%s/%s.go", templateSet.OutputDir, name)
+	outputFileName := name + ".go"
+	if templateSet.OutputFileName != "" {
+		outputFileName = templateSet.OutputFileName
+	}
+
+	outputFilePath := fmt.Sprintf("%s/%s", templateSet.OutputDir, outputFileName)
 	outputfile, err := os.Create(outputFilePath)
 	if err != nil {
 		return err
 	}
 
+	data := templateData{
+		Name: name,
+		CurrentDir: getWorkingDirName(),
+	}
+
 	return tql.Execute(outputfile, data)
+}
+
+func getWorkingDirName() string {
+	p, err := os.Getwd()
+	if err != nil {
+		log.Fatal(err)
+	}
+	paths := strings.Split(p, "/")
+	return paths[len(paths)-1]
 }

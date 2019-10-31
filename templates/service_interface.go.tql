@@ -1,0 +1,5 @@
+package {{.Name}}
+
+type Service interface {
+
+}
