@@ -33,8 +33,12 @@ var templateSets = []*templateSet{
 }
 
 func generateOutput(name string) error {
+	currentDir := getWorkingDirName()
+
+	fmt.Println("processing...\n")
+
 	for _, set := range templateSets {
-		err := executeTemplate(set, name, getWorkingDirName())
+		err := executeTemplate(set, name, currentDir)
 		if err != nil {
 			return err
 		}
@@ -73,7 +77,12 @@ func executeTemplate(templateSet *templateSet, name string, currentDir string) e
 		CurrentDir: currentDir,
 	}
 
-	return tql.Execute(outputfile, data)
+	if err := tql.Execute(outputfile, data); err != nil {
+		return err
+	}
+
+	fmt.Printf("generated: %s\n", outputFilePath)
+	return nil
 }
 
 func getWorkingDirName() string {
