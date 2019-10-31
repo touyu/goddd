@@ -27,14 +27,14 @@ var templateSets = []*templateSet{
 	},
 	{
 		FileName: "service_interface.go.tql",
-		OutputDir: "domain/service/creator",
+		OutputDir: "domain/service/{{name}}",
 		OutputFileName: "interface.go",
 	},
 }
 
 func generateOutput(name string) error {
 	for _, set := range templateSets {
-		err := executeTemplate(set, name)
+		err := executeTemplate(set, name, getWorkingDirName())
 		if err != nil {
 			return err
 		}
@@ -42,7 +42,7 @@ func generateOutput(name string) error {
 	return nil
 }
 
-func executeTemplate(templateSet *templateSet, name string) error {
+func executeTemplate(templateSet *templateSet, name string, currentDir string) error {
 	templateFileName := templateSet.FileName
 	templateFilePath := fmt.Sprintf("templates/%s", templateFileName)
 
@@ -51,7 +51,9 @@ func executeTemplate(templateSet *templateSet, name string) error {
 		return err
 	}
 
-	if err := os.MkdirAll(templateSet.OutputDir, 0700); err != nil {
+	outputDir := strings.Replace(templateSet.OutputDir, "{{name}}", name, 1)
+
+	if err := os.MkdirAll(outputDir, 0700); err != nil {
 		return err
 	}
 
@@ -60,7 +62,7 @@ func executeTemplate(templateSet *templateSet, name string) error {
 		outputFileName = templateSet.OutputFileName
 	}
 
-	outputFilePath := fmt.Sprintf("%s/%s", templateSet.OutputDir, outputFileName)
+	outputFilePath := fmt.Sprintf("%s/%s", outputDir, outputFileName)
 	outputfile, err := os.Create(outputFilePath)
 	if err != nil {
 		return err
@@ -68,7 +70,7 @@ func executeTemplate(templateSet *templateSet, name string) error {
 
 	data := templateData{
 		Name: name,
-		CurrentDir: getWorkingDirName(),
+		CurrentDir: currentDir,
 	}
 
 	return tql.Execute(outputfile, data)
