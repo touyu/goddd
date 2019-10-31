@@ -1,5 +1,5 @@
 package application
 
-type {{.Name}}Service struct {
+type {{.Name | camelCase}}Service struct {
 
 }

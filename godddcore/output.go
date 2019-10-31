@@ -1,12 +1,21 @@
 package godddcore
 
 import (
+	"goddd/strmangle"
 	"os"
 	"text/template"
 )
 
+var templateFunctions = template.FuncMap{
+	"titleCase": strmangle.TitleCase,
+	"camelCase": strmangle.CamelCase,
+}
+
 func generateOutput(name string) error {
-	tql, err := template.ParseFiles("templates/sample.go.tql")
+	templateFile := "sample.go.tql"
+	templateFilePath := "templates/sample.go.tql"
+
+	tql, err := template.New(templateFile).Funcs(templateFunctions).ParseFiles(templateFilePath)
 	if err != nil {
 		return err
 	}

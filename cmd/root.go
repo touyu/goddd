@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/spf13/cobra"
 	"goddd/godddcore"
+	"log"
 	"os"
 )
 
@@ -24,5 +25,7 @@ func Execute() {
 
 func run(cmd *cobra.Command, args []string) {
 	name := args[0]
-	godddcore.Run(name)
+	if err := godddcore.Run(name); err != nil {
+		log.Fatal(err)
+	}
 }
